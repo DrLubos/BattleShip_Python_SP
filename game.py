@@ -3,51 +3,45 @@ import arcade
 
 rozmer = 10
 stvorec_size = 40
-hra_sa = False
-nacitane_lode = False
 
 class Window(arcade.Window):
     def __init__(self, width, height, title, stvorec_size):
         super().__init__(width, height, title)
-        #arcade.set_background_color(arcade.color.BLUE)
+        arcade.set_background_color(arcade.color.BLUE)
         self.width = width
         self.height = height
         stvorec_size = stvorec_size
         self.stvorec_size = stvorec_size
         self.hracie_pole = [[Policko(row, col, stvorec_size, self.width, self.height) for col in range(rozmer)] for row in range(rozmer)]
         self.nepriatelske_pole = [[Policko(row, col, stvorec_size, self.width, self.height, nepriatel=True) for col in range(rozmer)] for row in range(rozmer)]
-        self.sprite_list = arcade.SpriteList()
         self.aktivne_policko = None
+        self.hrac_lode = []
+        self.hra_sa = False
+        self.nacitane_lode = False
 
     def on_draw(self):
         arcade.start_render()
-        #self.vykresli_pole(self.hracie_pole)
-        #self.vykresli_pole(self.nepriatelske_pole)
-        if not nacitane_lode: self.nacitaj_lode()
-        
-
-    def vykresli_pole(self, pole):
-        for row in pole:
-            for policko in row:
-                policko.stvorec.vykresli()
+        self.vykresli_pole(self.hracie_pole)
+        self.vykresli_pole(self.nepriatelske_pole)
+        if not self.nacitane_lode: self.nacitaj_lode()
                 
     def on_mouse_press(self, x, y, button, modifiers):
-        if self.aktivne_policko:
-            lod = self.aktivne_policko.lod
-            if lod:
+        if not self.hra_sa and not self.nacitane_lode:
+            for lod in self.hrac_lode:
                 if (
-                    x > lod.x
-                    and x < lod.x + lod.size
-                    and y > lod.y
-                    and y < lod.y + lod.size
+                    x >= lod.LHX
+                    and x <= lod.LHX + self.stvorec_size
+                    and y <= lod.LHY
+                    and y >= lod.LHY - self.stvorec_size * lod.size
                 ):
-                    lod.active = True  # Nastavíme loď ako aktívnu
+                    self.aktivna_lod = lod
+        if self.hra_sa and self.aktivne_policko:
+            self.aktivne_policko.zasah()
+            self.aktivne_policko = None
+            arcade.cleanup_texture_cache()
 
         
     def on_mouse_motion(self, x, y, dx, dy):
-        if not hra_sa:
-            pass
-        
         nove_pole = None
         if x < self.stvorec_size * (len(self.hracie_pole) + 1) + 100:
             nove_pole = self.zisti_policko_pod_mysou(x, y, self.hracie_pole)
@@ -63,12 +57,28 @@ class Window(arcade.Window):
             if self.aktivne_policko:
                 self.aktivne_policko.reset_farbu()
             self.aktivne_policko = None
-            
-    def on_mouse_press(self, x, y, button, modifiers):
-        if self.aktivne_policko:
-            self.aktivne_policko.zasah()
-            self.aktivne_policko = None
-            arcade.cleanup_texture_cache()
+    
+    def on_close(self):
+        self.aktivne_policko = None
+        arcade.cleanup_texture_cache()
+        super().on_close()
+        
+    def nacitaj_lode(self):
+        if not self.nacitane_lode:
+            self.hrac_lode = [
+                Lod(5, "./assets/ship1.png"),
+                Lod(4, "./assets/ship2.png"),
+                Lod(4, "./assets/ship3.png"),
+                Lod(3, "./assets/ship4.png"),
+                Lod(3, "./assets/ship5.png"),
+                Lod(2, "./assets/ship6.png"),
+                Lod(2, "./assets/ship7.png"),
+            ]
+            index = 1
+            for lod in self.hrac_lode:
+                lod.vykresli(index * (stvorec_size * 1 + 20), None, stvorec_size)
+                index += 1
+            nacitane_lode = True
     
     def zisti_policko_pod_mysou(self, x, y, pole):
         for row in pole:
@@ -81,28 +91,12 @@ class Window(arcade.Window):
                     and y < stvorec.y + stvorec.size
                 ):
                     return policko
-        return None
+        return None        
     
-    def on_close(self):
-        self.aktivne_policko = None
-        arcade.cleanup_texture_cache()
-        super().on_close()
-        
-    def nacitaj_lode(self):
-        self.hrac_lode = [
-            Lod(5, "./assets/ship1.png"),
-            Lod(4, "./assets/ship2.png"),
-            Lod(4, "./assets/ship3.png"),
-            Lod(3, "./assets/ship4.png"),
-            Lod(3, "./assets/ship5.png"),
-            Lod(2, "./assets/ship6.png"),
-            Lod(2, "./assets/ship7.png"),
-        ]
-        index = 1
-        for lod in self.hrac_lode:
-            lod.vykresli(index * (stvorec_size * 1 + 20), None, stvorec_size)
-            index += 1
-        nacitane_lode = True
+    def vykresli_pole(self, pole):
+        for row in pole:
+            for policko in row:
+                policko.stvorec.vykresli()
 
 class Policko:
     def __init__(self, row, col, size, win_width, win_height, nepriatel=False, lod=False):
@@ -178,7 +172,7 @@ class Lod:
         self.LHX = self.x - (stvorec_size / 2)
         self.LHY = self.y + (self.size * stvorec_size / 2)
         if self.image:
-            print(self.x, self.y)
+            #print(self.x, self.y)
             arcade.draw_texture_rectangle(self.x, self.y, stvorec_size, stvorec_size * self.size, self.image, self.angle)
         else:
             print("Nepodarilo sa nacitat obrazok lode")
