@@ -1,4 +1,5 @@
 from enums import Status
+from policko import Policko
 import arcade
 
 rozmer = 10
@@ -18,12 +19,13 @@ class Window(arcade.Window):
         self.hrac_lode = []
         self.hra_sa = False
         self.nacitane_lode = False
+        self.aktivna_lod = None
 
     def on_draw(self):
         arcade.start_render()
         self.vykresli_pole(self.hracie_pole)
         self.vykresli_pole(self.nepriatelske_pole)
-        if not self.nacitane_lode: self.nacitaj_lode()
+        self.nacitaj_lode()
                 
     def on_mouse_press(self, x, y, button, modifiers):
         if not self.hra_sa and not self.nacitane_lode:
@@ -33,8 +35,9 @@ class Window(arcade.Window):
                     and x <= lod.LHX + self.stvorec_size
                     and y <= lod.LHY
                     and y >= lod.LHY - self.stvorec_size * lod.size
-                ):
+                ) and not self.aktivna_lod:
                     self.aktivna_lod = lod
+                    print("asdas")
         if self.hra_sa and self.aktivne_policko:
             self.aktivne_policko.zasah()
             self.aktivne_policko = None
@@ -64,7 +67,6 @@ class Window(arcade.Window):
         super().on_close()
         
     def nacitaj_lode(self):
-        if not self.nacitane_lode:
             self.hrac_lode = [
                 Lod(5, "./assets/ship1.png"),
                 Lod(4, "./assets/ship2.png"),
@@ -76,9 +78,8 @@ class Window(arcade.Window):
             ]
             index = 1
             for lod in self.hrac_lode:
-                lod.vykresli(index * (stvorec_size * 1 + 20), None, stvorec_size)
+                lod.vykresli(index * (stvorec_size * 1 + 20), None)
                 index += 1
-            nacitane_lode = True
     
     def zisti_policko_pod_mysou(self, x, y, pole):
         for row in pole:
@@ -97,61 +98,6 @@ class Window(arcade.Window):
         for row in pole:
             for policko in row:
                 policko.stvorec.vykresli()
-
-class Policko:
-    def __init__(self, row, col, size, win_width, win_height, nepriatel=False, lod=False):
-        self.row = row
-        self.col = col
-        self.size = size
-        self.win_width = win_width
-        self.win_height = win_height
-        self.nepriatel = nepriatel
-        self.lod = lod
-        self.status = Status.PRAZDNE
-        if nepriatel:
-            self.stvorec = Stvorec(col * size - 20 + (win_width - size * rozmer), self.win_height - ((row + 1) * size) - 20, size, arcade.color.RED, True)
-        else:
-            self.stvorec = Stvorec(col * size + 20, self.win_height - ((row + 1) * size) - 20, size, arcade.color.BLACK)
-
-    def zasah(self):
-        if self.nepriatel:
-            self.status = Status.VYSTRELENE
-            self.stvorec.color = (0, 0, 0, 0)
-            if self.lod:
-                self.status = Status.ZASIAHNUTE
-                self.stvorec.color = arcade.color.SILVER
-                
-            
-    def zmen_farbu(self):
-        if self.status == Status.PRAZDNE:
-            if self.nepriatel:
-                self.stvorec.color = arcade.color.GREEN
-            else:    
-                self.stvorec.priehladna = arcade.color.GOLD
-
-    def reset_farbu(self):
-        if self.status == Status.PRAZDNE:
-            if self.nepriatel:
-                self.stvorec.color = arcade.color.RED
-            else:
-                self.stvorec.priehladna = (0, 0, 0, 0)
-
-class Stvorec:
-    def __init__(self, x, y, size, color, nepriatel=False):
-        self.x = x
-        self.y = y
-        self.size = size
-        self.color = color
-        self.nepriatel = nepriatel
-        self.povodna_farba = color
-        self.priehladna = (0, 0, 0, 0)
-    
-    def vykresli(self):
-        if self.nepriatel:
-            arcade.draw_xywh_rectangle_filled(self.x, self.y, self.size, self.size, self.color)
-        else:
-            arcade.draw_rectangle_filled(self.x + self.size / 2, self.y + self.size / 2, self.size, self.size, self.priehladna)
-            arcade.draw_xywh_rectangle_outline(self.x, self.y, self.size, self.size, self.color, 2)
             
 class Lod:
     def __init__(self, size, image_path):
@@ -159,20 +105,19 @@ class Lod:
         self.image_path = image_path
         self.image = arcade.load_texture(image_path) if image_path else None
         self.stav = Status.LOD
-        self.x = 20 + stvorec_size # defaultne hodnoty
+        self.x = 20 + stvorec_size
         self.y = self.size * stvorec_size / 2 + 20
         self.active = False
         self.angle = 0
         self.LHX = 0
         self.LHY = 0
 
-    def vykresli(self, x, y, stvorec_size):
+    def vykresli(self, x, y):
         if x or x == 0 : self.x = x
         if y or y == 0 : self.y = y
-        self.LHX = self.x - (stvorec_size / 2)
-        self.LHY = self.y + (self.size * stvorec_size / 2)
+        if self.LHX == 0: self.LHX = self.x - (stvorec_size / 2)
+        if self.LHY == 0: self.LHY = self.y + (self.size * stvorec_size / 2)
         if self.image:
-            #print(self.x, self.y)
             arcade.draw_texture_rectangle(self.x, self.y, stvorec_size, stvorec_size * self.size, self.image, self.angle)
         else:
             print("Nepodarilo sa nacitat obrazok lode")

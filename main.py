@@ -1,6 +1,6 @@
 # main.py
 import arcade
-from game import Window
+from gui_main import Window
 
 def main():
     game = Window(1200, 800, "Battleship Game", 40)
