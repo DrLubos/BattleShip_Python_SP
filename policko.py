@@ -1,25 +1,31 @@
 from enums import Status
 import arcade
 class Policko:
-    def __init__(self, row, col, size, win_width, win_height, nepriatel=False, lod=False, rozmer=10):
+    def __init__(self, row, col, size, win_width, win_height, nepriatel=False, rozmer=10):
         self.row = row
         self.col = col
         self.size = size
         self.win_width = win_width
         self.win_height = win_height
         self.nepriatel = nepriatel
-        self.lod = lod
         self.status = Status.PRAZDNE
         if nepriatel:
             self.stvorec = Stvorec(col * size - 20 + (win_width - size * rozmer), self.win_height - ((row + 1) * size) - 20, size, arcade.color.RED, True)
         else:
             self.stvorec = Stvorec(col * size + 20, self.win_height - ((row + 1) * size) - 20, size, arcade.color.BLACK)
 
+    def get_row(self):
+        return self.row
+    def get_col(self):
+        return self.col
+    def get_status(self):
+        return self.status
+    
     def zasah(self):
         if self.nepriatel:
             self.status = Status.VYSTRELENE
             self.stvorec.color = (0, 0, 0, 0)
-            if self.lod:
+            if self.status == Status.LOD:
                 self.status = Status.ZASIAHNUTE
                 self.stvorec.color = arcade.color.SILVER    
             

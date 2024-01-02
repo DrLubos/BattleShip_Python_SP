@@ -28,17 +28,32 @@ class Window(arcade.Window):
         self.nacitaj_lode()
                 
     def on_mouse_press(self, x, y, button, modifiers):
-        if not self.hra_sa and not self.nacitane_lode:
+        if not self.hra_sa and not self.nacitane_lode and not self.aktivna_lod:
             for lod in self.hrac_lode:
                 if (
                     x >= lod.LHX
                     and x <= lod.LHX + self.stvorec_size
                     and y <= lod.LHY
                     and y >= lod.LHY - self.stvorec_size * lod.size
-                ) and not self.aktivna_lod:
+                ):
                     self.aktivna_lod = lod
                     self.aktivna_lod.alpha = 170
-                    print("asdas")
+        if not self.hra_sa and self.aktivna_lod is not None and x < self.width / 2:
+            poloha_na_lod = self.zisti_policko_pod_mysou(x, y, self.hracie_pole)
+            if poloha_na_lod is not None: 
+                lower_index = False
+                if self.aktivna_lod.angle == 0:
+                    ys = poloha_na_lod.stvorec.y
+                    if ys + self.stvorec_size / 2 < y:
+                        lower_index = True
+                else:
+                    xs = poloha_na_lod.stvorec.x
+                    if xs + self.stvorec_size / 2 > x:
+                        lower_index = True
+                if self.zisti_moznost_polozenia_lode(poloha_na_lod.get_row(), poloha_na_lod.get_col(), lower_index):
+                    self.aktivna_lod.alpha = 220
+                    # Vycentrovat lod
+                    self.aktivna_lod = None
         if self.hra_sa and self.aktivne_policko:
             self.aktivne_policko.zasah()
             self.aktivne_policko = None
@@ -49,9 +64,9 @@ class Window(arcade.Window):
             self.aktivna_lod.vykresli(x,y)
         
         nove_pole = None
-        if x < self.stvorec_size * (len(self.hracie_pole) + 1) + 100:
+        if x < self.width / 2:
             nove_pole = self.zisti_policko_pod_mysou(x, y, self.hracie_pole)
-        elif x > self.width - (self.stvorec_size * (len(self.nepriatelske_pole) + 1)) - 100 and not self.aktivna_lod:
+        elif x > self.width / 2 and not self.aktivna_lod:
             nove_pole = self.zisti_policko_pod_mysou(x, y, self.nepriatelske_pole)
             
         if nove_pole:
@@ -116,6 +131,40 @@ class Window(arcade.Window):
         for row in pole:
             for policko in row:
                 policko.stvorec.vykresli()
+                
+    def zisti_moznost_polozenia_lode(self, row, col, lower_index):
+        polovica = self.aktivna_lod.size // 2
+        if (self.aktivna_lod.size % 2 == 0):
+            if lower_index:
+                if self.aktivna_lod.angle == 270:
+                    pass
+                    
+        else:
+            if (self.aktivna_lod.angle == 270):
+                if col < polovica or col > len(self.hracie_pole[row]) - (polovica + 1):
+                    return False
+                for i in range(polovica + 1):
+                    if self.hracie_pole[row][col - i].get_status() != Status.PRAZDNE:
+                        return False
+                for i in range(polovica + 1):
+                    if self.hracie_pole[row][col + i].get_status() != Status.PRAZDNE:
+                        return False
+                for i in range(self.aktivna_lod.size):
+                    self.hracie_pole[row][col - polovica + i].status = Status.LOD
+                return True
+            else:
+                if row < polovica or row > len(self.hracie_pole) - (polovica + 1):
+                    return False
+                for i in range(polovica + 1):
+                    if self.hracie_pole[row - i][col].get_status() != Status.PRAZDNE:
+                        return False
+                for i in range(polovica + 1):
+                    if self.hracie_pole[row + i][col].get_status() != Status.PRAZDNE:
+                        return False
+                for i in range(self.aktivna_lod.size):
+                    self.hracie_pole[row - polovica + i][col].status = Status.LOD
+                return True
+        return False
             
 class Lod:
     def __init__(self, size, image_path):
@@ -142,5 +191,4 @@ class Lod:
             print("Nepodarilo sa nacitat obrazok lode")
             
     def otoc(self):
-        self.angle = 90 if self.angle == 0 else 0
-        print(self.angle)
+        self.angle = 270 if self.angle == 0 else 0
