@@ -40,7 +40,7 @@ class Window(arcade.Window):
                     self.aktivna_lod.alpha = 170
         if not self.hra_sa and self.aktivna_lod is not None and x < self.width / 2:
             poloha_na_lod = self.zisti_policko_pod_mysou(x, y, self.hracie_pole)
-            if poloha_na_lod is not None: 
+            if isinstance(poloha_na_lod, Policko): 
                 lower_index = False
                 if self.aktivna_lod.angle == 0:
                     ys = poloha_na_lod.stvorec.y
@@ -50,9 +50,26 @@ class Window(arcade.Window):
                     xs = poloha_na_lod.stvorec.x
                     if xs + self.stvorec_size / 2 > x:
                         lower_index = True
-                if self.zisti_moznost_polozenia_lode(poloha_na_lod.get_row(), poloha_na_lod.get_col(), lower_index):
-                    self.aktivna_lod.alpha = 220
-                    # Vycentrovat lod
+                if self.zisti_moznost_polozenia_lode(poloha_na_lod.row, poloha_na_lod.col, lower_index):
+                    self.aktivna_lod.alpha = 255
+                    if self.aktivna_lod.angle == 270 or self.aktivna_lod.angle == 90: 
+                        self.aktivna_lod.y = poloha_na_lod.stvorec.y + self.stvorec_size / 2
+                        if self.aktivna_lod.size % 2 == 0:
+                            if not lower_index:
+                                self.aktivna_lod.x = poloha_na_lod.stvorec.x + self.stvorec_size
+                            else:
+                                self.aktivna_lod.x = poloha_na_lod.stvorec.x
+                        else:
+                            self.aktivna_lod.x = poloha_na_lod.stvorec.x + self.stvorec_size / 2
+                    else: 
+                        self.aktivna_lod.x = poloha_na_lod.stvorec.x + self.stvorec_size / 2
+                        if self.aktivna_lod.size % 2 == 0:
+                            if not lower_index:
+                                self.aktivna_lod.y = poloha_na_lod.stvorec.y
+                            else:
+                                self.aktivna_lod.y = poloha_na_lod.stvorec.y + self.stvorec_size
+                        else:
+                            self.aktivna_lod.y = poloha_na_lod.stvorec.y + self.stvorec_size / 2
                     self.aktivna_lod = None
         if self.hra_sa and self.aktivne_policko:
             self.aktivne_policko.zasah()
@@ -101,6 +118,11 @@ class Window(arcade.Window):
                 Lod(3, "./assets/ship5.png"),
                 Lod(2, "./assets/ship6.png"),
                 Lod(2, "./assets/ship7.png"),
+                Lod(2, "./assets/ship7.png"),
+                Lod(2, "./assets/ship7.png"),
+                Lod(2, "./assets/ship7.png"),
+                Lod(2, "./assets/ship7.png"),
+                Lod(2, "./assets/ship7.png"),
             ]
         index = 1
         for lod in self.hrac_lode:
@@ -133,21 +155,63 @@ class Window(arcade.Window):
                 policko.stvorec.vykresli()
                 
     def zisti_moznost_polozenia_lode(self, row, col, lower_index):
-        polovica = self.aktivna_lod.size // 2
-        if (self.aktivna_lod.size % 2 == 0):
-            if lower_index:
-                if self.aktivna_lod.angle == 270:
-                    pass
-                    
+        if self.aktivna_lod.size % 2 == 0:
+            if self.aktivna_lod.angle == 270:
+                if lower_index:
+                    polovica = self.aktivna_lod.size // 2
+                    col -= polovica
+                    if col < 0 or col + self.aktivna_lod.size > len(self.hracie_pole[row]):
+                        return False
+                    for i in range(col, col + self.aktivna_lod.size):
+                        if self.hracie_pole[row][i].status != Status.PRAZDNE:
+                            return False
+                    for i in range(col, col + self.aktivna_lod.size):
+                        self.hracie_pole[row][i].status = Status.LOD
+                    return True
+                else:
+                    polovica = self.aktivna_lod.size // 2
+                    col = col - polovica + 1
+                    if col < 0 or col + self.aktivna_lod.size > len(self.hracie_pole[row]):
+                        return False
+                    for i in range(col, col + self.aktivna_lod.size):
+                        if self.hracie_pole[row][i].status != Status.PRAZDNE:
+                            return False
+                    for i in range(col, col + self.aktivna_lod.size):
+                        self.hracie_pole[row][i].status = Status.LOD
+                    return True
+            else:
+                if lower_index:
+                    polovica = self.aktivna_lod.size // 2
+                    row -= polovica
+                    if row < 0 or row + self.aktivna_lod.size > len(self.hracie_pole):
+                        return False
+                    for i in range(row, row + self.aktivna_lod.size):
+                        if self.hracie_pole[i][col].status != Status.PRAZDNE:
+                            return False
+                    for i in range(row, row + self.aktivna_lod.size):
+                        self.hracie_pole[i][col].status = Status.LOD
+                    return True
+                else:
+                    polovica = self.aktivna_lod.size // 2
+                    row = row - polovica + 1
+                    if row < 0 or row + self.aktivna_lod.size > len(self.hracie_pole):
+                        return False
+                    for i in range(row, row + self.aktivna_lod.size):
+                        if self.hracie_pole[i][col].status != Status.PRAZDNE:
+                            return False
+                    for i in range(row, row + self.aktivna_lod.size):
+                        self.hracie_pole[i][col].status = Status.LOD
+                    return True
         else:
-            if (self.aktivna_lod.angle == 270):
+            polovica = self.aktivna_lod.size // 2
+            if self.aktivna_lod.angle == 270:
                 if col < polovica or col > len(self.hracie_pole[row]) - (polovica + 1):
                     return False
                 for i in range(polovica + 1):
-                    if self.hracie_pole[row][col - i].get_status() != Status.PRAZDNE:
+                    if self.hracie_pole[row][col - i].status != Status.PRAZDNE:
                         return False
                 for i in range(polovica + 1):
-                    if self.hracie_pole[row][col + i].get_status() != Status.PRAZDNE:
+                    if self.hracie_pole[row][col + i].status != Status.PRAZDNE:
                         return False
                 for i in range(self.aktivna_lod.size):
                     self.hracie_pole[row][col - polovica + i].status = Status.LOD
@@ -156,10 +220,10 @@ class Window(arcade.Window):
                 if row < polovica or row > len(self.hracie_pole) - (polovica + 1):
                     return False
                 for i in range(polovica + 1):
-                    if self.hracie_pole[row - i][col].get_status() != Status.PRAZDNE:
+                    if self.hracie_pole[row - i][col].status != Status.PRAZDNE:
                         return False
                 for i in range(polovica + 1):
-                    if self.hracie_pole[row + i][col].get_status() != Status.PRAZDNE:
+                    if self.hracie_pole[row + i][col].status != Status.PRAZDNE:
                         return False
                 for i in range(self.aktivna_lod.size):
                     self.hracie_pole[row - polovica + i][col].status = Status.LOD
