@@ -1,9 +1,9 @@
 # main.py
 import arcade
-from gui_main import Window
+from game_handler import Window
 
 def main():
-    game = Window(1200, 800, "Battleship Game", 40)
+    game = Window(1200, 800, "BattleShip Game")
     arcade.run()
 
 if __name__ == "__main__":
