@@ -1,9 +1,11 @@
 from boat import Boat
 from enums_constants import square_length, board_size, TileStatus
 from tile import Tile
+from enemy import Enemy
+
 import arcade
 
-class Window(arcade.Window):
+class Handler(arcade.Window):
     def __init__(self, win_width, height, title):
         super().__init__(win_width, height, title)
         arcade.set_background_color(arcade.color.BLUE)
@@ -15,6 +17,10 @@ class Window(arcade.Window):
         self.active_boat = None
         self.game_status = False
         self.placed_boats = 0
+        self.player_move = True
+        self.load_boats()
+        self.enemy = Enemy(self.boats, self)
+        self.enemy.setup_boats()
 
     def on_draw(self):
         arcade.start_render()
@@ -45,9 +51,10 @@ class Window(arcade.Window):
                     self.placed_boats += 1
                     if self.placed_boats == len(self.boats):
                         self.game_status = True
-        if self.game_status and self.active_tile:
+        if self.game_status and self.active_tile and self.player_move:
             self.active_tile.hitted()
             self.active_tile = None
+            self.player_move = False
             arcade.cleanup_texture_cache()
         
     def on_mouse_motion(self, x, y, dx, dy):
@@ -90,11 +97,6 @@ class Window(arcade.Window):
                 Boat(3, "./assets/ship5.png"),
                 Boat(2, "./assets/ship6.png"),
                 Boat(2, "./assets/ship7.png"),
-                Boat(2, "./assets/ship7.png"),
-                Boat(2, "./assets/ship7.png"),
-                Boat(2, "./assets/ship7.png"),
-                Boat(2, "./assets/ship7.png"),
-                Boat(2, "./assets/ship7.png"),
             ]
         index = 1
         for lod in self.boats:
@@ -126,79 +128,135 @@ class Window(arcade.Window):
                 if isinstance(tile, Tile):
                     tile.square.draw()
                     
-    def check_boat_placement(self, row, col, lower_index):
+    def check_boat_placement(self, row, col, lower_index=False, enemy_check=False):
         if self.active_boat.length % 2 == 0:
             if self.active_boat.angle == 270:
                 if lower_index:
                     polovica = self.active_boat.length // 2
                     col -= polovica
-                    if col < 0 or col + self.active_boat.length > len(self.player_tiles[row]):
+                    if col < 0 or col + self.active_boat.length > board_size:
                         return False
                     for i in range(col, col + self.active_boat.length):
-                        if self.player_tiles[row][i].status != TileStatus.EMPTY:
-                            return False
+                        if not enemy_check:
+                            if self.player_tiles[row][i].status != TileStatus.EMPTY:
+                                return False
+                        else:
+                            if self.enemy_tiles[row][i].status != TileStatus.EMPTY:
+                                return False
                     for i in range(col, col + self.active_boat.length):
-                        self.player_tiles[row][i].status = TileStatus.BOAT
+                        if not enemy_check:
+                            self.player_tiles[row][i].status = TileStatus.BOAT
+                        else:
+                            self.enemy_tiles[row][i].status = TileStatus.BOAT
+                            self.enemy_tiles[row][i].square.color = arcade.color.PURPLE
                     return True
                 else:
                     polovica = self.active_boat.length // 2
                     col = col - polovica + 1
-                    if col < 0 or col + self.active_boat.length > len(self.player_tiles[row]):
+                    if col < 0 or col + self.active_boat.length > board_size:
                         return False
                     for i in range(col, col + self.active_boat.length):
-                        if self.player_tiles[row][i].status != TileStatus.EMPTY:
-                            return False
+                        if not enemy_check:
+                            if self.player_tiles[row][i].status != TileStatus.EMPTY:
+                                return False
+                        else:
+                            if self.enemy_tiles[row][i].status != TileStatus.EMPTY:
+                                return False
                     for i in range(col, col + self.active_boat.length):
-                        self.player_tiles[row][i].status = TileStatus.BOAT
+                        if not enemy_check:
+                            self.player_tiles[row][i].status = TileStatus.BOAT
+                        else:
+                            self.enemy_tiles[row][i].status = TileStatus.BOAT
+                            self.enemy_tiles[row][i].square.color = arcade.color.PURPLE
                     return True
             else:
                 if lower_index:
                     polovica = self.active_boat.length // 2
                     row -= polovica
-                    if row < 0 or row + self.active_boat.length > len(self.player_tiles):
+                    if row < 0 or row + self.active_boat.length > board_size:
                         return False
                     for i in range(row, row + self.active_boat.length):
-                        if self.player_tiles[i][col].status != TileStatus.EMPTY:
-                            return False
+                        if not enemy_check:
+                            if self.player_tiles[i][col].status != TileStatus.EMPTY:
+                                return False
+                        else:
+                            if self.enemy_tiles[i][col].status != TileStatus.EMPTY:
+                                return False
                     for i in range(row, row + self.active_boat.length):
-                        self.player_tiles[i][col].status = TileStatus.BOAT
+                        if not enemy_check:
+                            self.player_tiles[i][col].status = TileStatus.BOAT
+                        else:
+                            self.enemy_tiles[i][col].status = TileStatus.BOAT
+                            self.enemy_tiles[i][col].square.color = arcade.color.PURPLE
                     return True
                 else:
                     polovica = self.active_boat.length // 2
                     row = row - polovica + 1
-                    if row < 0 or row + self.active_boat.length > len(self.player_tiles):
+                    if row < 0 or row + self.active_boat.length > board_size:
                         return False
                     for i in range(row, row + self.active_boat.length):
-                        if self.player_tiles[i][col].status != TileStatus.EMPTY:
-                            return False
+                        if not enemy_check:
+                            if self.player_tiles[i][col].status != TileStatus.EMPTY:
+                                return False
+                        else:
+                            if self.enemy_tiles[i][col].status != TileStatus.EMPTY:
+                                return False
                     for i in range(row, row + self.active_boat.length):
-                        self.player_tiles[i][col].status = TileStatus.BOAT
+                        if not enemy_check:
+                            self.player_tiles[i][col].status = TileStatus.BOAT
+                        else:
+                            self.enemy_tiles[i][col].status = TileStatus.BOAT
+                            self.enemy_tiles[i][col].square.color = arcade.color.PURPLE
                     return True
         else:
             polovica = self.active_boat.length // 2
             if self.active_boat.angle == 270:
-                if col < polovica or col > len(self.player_tiles[row]) - (polovica + 1):
+                if col < polovica or col > board_size - (polovica + 1):
                     return False
                 for i in range(polovica + 1):
-                    if self.player_tiles[row][col - i].status != TileStatus.EMPTY:
-                        return False
+                    if not enemy_check:
+                        if self.player_tiles[row][col - i].status != TileStatus.EMPTY:
+                            return False
+                    else:
+                        if self.enemy_tiles[row][col - i].status != TileStatus.EMPTY:
+                            return False
                 for i in range(polovica + 1):
-                    if self.player_tiles[row][col + i].status != TileStatus.EMPTY:
-                        return False
+                    if not enemy_check:
+                        if self.player_tiles[row][col + i].status != TileStatus.EMPTY:
+                            return False
+                    else:
+                        if self.enemy_tiles[row][col + i].status != TileStatus.EMPTY:
+                            return False
                 for i in range(self.active_boat.length):
-                    self.player_tiles[row][col - polovica + i].status = TileStatus.BOAT
+                    if not enemy_check:
+                        self.player_tiles[row][col - polovica + i].status = TileStatus.BOAT
+                    else:
+                        self.enemy_tiles[row][col - polovica + i].status = TileStatus.BOAT
+                        self.enemy_tiles[row][col - polovica + i].square.color = arcade.color.PURPLE
                 return True
             else:
-                if row < polovica or row > len(self.player_tiles) - (polovica + 1):
+                if row < polovica or row > board_size - (polovica + 1):
                     return False
                 for i in range(polovica + 1):
-                    if self.player_tiles[row - i][col].status != TileStatus.EMPTY:
-                        return False
+                    if not enemy_check:
+                        if self.player_tiles[row - i][col].status != TileStatus.EMPTY:
+                            return False
+                    else:
+                        if self.enemy_tiles[row - i][col].status != TileStatus.EMPTY:
+                            return False
                 for i in range(polovica + 1):
-                    if self.player_tiles[row + i][col].status != TileStatus.EMPTY:
-                        return False
+                    if not enemy_check:
+                        if self.player_tiles[row + i][col].status != TileStatus.EMPTY:
+                            return False
+                    else:
+                        if self.enemy_tiles[row + i][col].status != TileStatus.EMPTY:
+                            return False
                 for i in range(self.active_boat.length):
-                    self.player_tiles[row - polovica + i][col].status = TileStatus.BOAT
+                    if not enemy_check:
+                        self.player_tiles[row - polovica + i][col].status = TileStatus.BOAT
+                    else:
+                        self.enemy_tiles[row - polovica + i][col].status = TileStatus.BOAT
+                        self.enemy_tiles[row - polovica + i][col].square.color = arcade.color.PURPLE
                 return True
     
     def place_boat(self, boat_placement_tile, lower_index):

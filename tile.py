@@ -17,12 +17,13 @@ class Tile:
             self.square = Square(col * self.side_length + 20, self.win_height - ((row + 1) * self.side_length) - 20, self.side_length, arcade.color.BLACK)
     
     def hitted(self):
-        if self.enemy:
-            self.status = TileStatus.MISS
-            self.square.color = (0, 0, 0, 0)
-            if self.status == TileStatus.BOAT:
+        if self.status == TileStatus.BOAT:
                 self.status = TileStatus.HIT
                 self.square.color = arcade.color.SILVER    
+        if self.status == TileStatus.EMPTY:
+            self.status = TileStatus.MISS
+            if self.enemy:
+                self.square.color = (0, 0, 0, 0)
             
     def change_color(self):
         if self.status == TileStatus.EMPTY:
