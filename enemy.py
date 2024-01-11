@@ -7,7 +7,7 @@ class Enemy:
         self.boats = []
         self.handler = handler
         for boat in boats:
-            self.boats.append(Boat(boat.length, boat.image_path))
+            self.boats.append(Boat(boat.length, None))
         
     def setup_boats(self):
         for boat in self.boats:

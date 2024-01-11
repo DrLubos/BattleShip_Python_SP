@@ -1,7 +1,10 @@
 from enum import Enum
 
-square_length = 40
+square_length = 50
 board_size = 10
+padding = 20
+win_width = 1200
+win_height = 800
 
 class TileStatus(Enum):
     EMPTY = 0
