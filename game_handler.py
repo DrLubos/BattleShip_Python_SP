@@ -12,6 +12,11 @@ class Handler(arcade.Window):
         self.cloud = arcade.load_texture("./assets/cloud.png")
         self.fire = arcade.load_texture("./assets/fire.png")
         self.missed = arcade.load_texture("./assets/missed.png")
+        self.game_status = False
+        self.player_move = False
+        self.setup()
+        
+    def setup(self):
         self.player_tiles = [[Tile(row, col, win_width, win_height, self, enemy=False) for col in range(board_size)] for row in range(board_size)]
         self.enemy_tiles = [[Tile(row, col, win_width, win_height, self, enemy=True) for col in range(board_size)] for row in range(board_size)]
         self.fire_coords = []
@@ -21,28 +26,45 @@ class Handler(arcade.Window):
         self.enemy_hitpoints = 0
         self.active_tile = None
         self.active_boat = None
-        self.game_status = False
         self.placed_boats = 0
-        self.player_move = True
         self.set_up_boats()
         self.enemy = Enemy(self.boats, self)
         self.enemy.setup_boats()
         self.frame = 0
+        self.middle_text = "Place boats on your board"
+        self.result = ""
 
     def on_draw(self):
         arcade.start_render()
         arcade.draw_lrwh_rectangle_textured(0, 0, win_width, win_width, self.background)
+        if not self.game_status and not self.player_move:
+            self.main_menu()
+            return
         self.draw_tiles(self.player_tiles)
         self.draw_tiles(self.enemy_tiles)
         self.load_boats()
         self.display_enemy_hits()
-        self.frame += 1
-        if self.frame % 3 == 0:
-            if self.game_status and not self.player_move:
-                self.enemy.shoot()
-                self.player_move = True
+        self.display_text()
+        if self.game_status:
+            self.frame += 1
+            if self.frame % 3 == 0:
+                if not self.player_move:
+                    self.enemy.shoot()
+                    if self.hitpoints == 0:
+                        self.main_menu()
+                        self.game_status = False
+                        self.result = "You lost!"
+                        return
+                    self.player_move = True
+                    self.middle_text = "Your turn"
+                self.frame = 0
                 
     def on_mouse_press(self, x, y, button, modifiers):
+        if not self.game_status and not self.player_move:
+            if x >= win_width / 2 - win_width / 4 and x <= win_width / 2 + win_width / 4 and y >= win_height / 2 - win_height / 12 and y <= win_height / 2 + win_height / 12:
+                self.player_move = True
+                self.setup()
+            return     
         if self.game_status and self.player_move and self.active_tile:
             if self.active_tile.enemy and (self.active_tile.status == TileStatus.EMPTY or self.active_tile.status == TileStatus.BOAT):
                 if self.active_tile.status == TileStatus.BOAT:
@@ -50,6 +72,12 @@ class Handler(arcade.Window):
                 self.active_tile.hitted()
                 self.active_tile = None
                 self.player_move = False
+                if self.enemy_hitpoints == 0:
+                    self.main_menu()
+                    self.game_status = False
+                    self.result = "You won!"
+                    return
+                self.middle_text = "Enemy turn"
             #arcade.cleanup_texture_cache()
         if not self.game_status and not self.active_boat:
             for boat in self.boats:
@@ -73,6 +101,7 @@ class Handler(arcade.Window):
                     self.placed_boats += 1
                     if self.placed_boats == len(self.boats):
                         self.game_status = True
+                        self.middle_text = "Your turn"
         
     def on_mouse_motion(self, x, y, dx, dy):
         if self.active_boat:
@@ -305,5 +334,17 @@ class Handler(arcade.Window):
         for coord in self.miss_coords:
             arcade.draw_lrwh_rectangle_textured(coord[0], coord[1], square_length, square_length, texture=self.missed, angle=90)
             
-    def main_menu(self, win=False):
-        pass
+    def display_text(self):
+        arcade.draw_text(self.middle_text, win_width / 2, win_height - padding * 2 - board_size * square_length, arcade.color.WHITE, font_size=30, anchor_x="center", anchor_y="center", bold=True)
+        if self.game_status:
+            arcade.draw_text("Your health: " + str(self.hitpoints), padding + board_size // 2 * square_length, win_height - padding * 2 - board_size * square_length, arcade.color.WHITE, font_size=27, anchor_x="center", anchor_y="center", bold=True)
+            arcade.draw_text("Enemy health: " + str(self.enemy_hitpoints), win_width - (padding + board_size // 2 * square_length), win_height - padding * 2 - board_size * square_length, arcade.color.WHITE, font_size=27, anchor_x="center", anchor_y="center", bold=True)
+            
+    def main_menu(self):
+        if self.result == "You won!":
+            arcade.draw_rectangle_filled(win_width / 2, win_height - padding - win_height / 5, win_width / 2, win_height / 6, arcade.color.GOLD)
+        elif self.result == "You lost!":
+            arcade.draw_rectangle_filled(win_width / 2, win_height - padding - win_height / 5, win_width / 2, win_height / 6, arcade.color.RED)
+        arcade.draw_text(self.result, win_width / 2, win_height - padding - win_height / 5, arcade.color.BLACK, font_size=90, anchor_x="center", anchor_y="center", bold=True)
+        arcade.draw_rectangle_filled(win_width / 2, win_height / 2, win_width / 2, win_height / 6, arcade.color.SILVER)
+        arcade.draw_text("PLAY", win_width / 2, win_height / 2, arcade.color.BLACK, font_size=90, anchor_x="center", anchor_y="center", bold=True)
