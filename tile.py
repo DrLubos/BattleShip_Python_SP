@@ -12,9 +12,9 @@ class Tile:
         self.enemy = enemy
         self.status = TileStatus.EMPTY
         if self.enemy:
-            self.square = Square(col * square_length - padding + (win_width - square_length * board_size), self.win_height - ((row + 1) * square_length) - padding, arcade.color.RED, self.handler, True)
+            self.square = Square(col * square_length - padding + (win_width - square_length * board_size), self.win_height - ((row + 1) * square_length) - padding, arcade.color.RED, self.handler, enemy=True)
         else:
-            self.square = Square(col * square_length + padding, self.win_height - ((row + 1) * square_length) - padding, arcade.color.BLACK, self.handler)
+            self.square = Square(col * square_length + padding, self.win_height - ((row + 1) * square_length) - padding, arcade.color.BLACK, self.handler, enemy=False)
     
     def hitted(self):
         if self.status == TileStatus.BOAT:
@@ -25,9 +25,9 @@ class Tile:
                     self.handler.hitpoints -= 1
         if self.status == TileStatus.EMPTY:
             self.status = TileStatus.MISS
-            if self.enemy:
-                self.square.alpha = 0
-                self.square.color = (0, 0, 0, 0)
+            self.square.alpha = 0
+            if not self.enemy:
+                self.handler.miss_coords.append((self.square.x, self.square.y))
             
     def change_color(self):
         if self.status == TileStatus.EMPTY:

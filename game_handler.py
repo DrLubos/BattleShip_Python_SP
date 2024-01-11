@@ -8,12 +8,14 @@ import arcade
 class Handler(arcade.Window):
     def __init__(self, title):
         super().__init__(win_width, win_height, title)
+        self.background = arcade.load_texture("./assets/bg.jpg")
         self.cloud = arcade.load_texture("./assets/cloud.png")
         self.fire = arcade.load_texture("./assets/fire.png")
-        self.background = arcade.load_texture("./assets/bg.jpg")
-        self.player_tiles = [[Tile(row, col, win_width, win_height, self) for col in range(board_size)] for row in range(board_size)]
+        self.missed = arcade.load_texture("./assets/missed.png")
+        self.player_tiles = [[Tile(row, col, win_width, win_height, self, enemy=False) for col in range(board_size)] for row in range(board_size)]
         self.enemy_tiles = [[Tile(row, col, win_width, win_height, self, enemy=True) for col in range(board_size)] for row in range(board_size)]
         self.fire_coords = []
+        self.miss_coords = []
         self.boats = []
         self.hitpoints = 0
         self.enemy_hitpoints = 0
@@ -33,7 +35,7 @@ class Handler(arcade.Window):
         self.draw_tiles(self.player_tiles)
         self.draw_tiles(self.enemy_tiles)
         self.load_boats()
-        self.display_fire()
+        self.display_enemy_hits()
         self.frame += 1
         if self.frame % 3 == 0:
             if self.game_status and not self.player_move:
@@ -41,13 +43,14 @@ class Handler(arcade.Window):
                 self.player_move = True
                 
     def on_mouse_press(self, x, y, button, modifiers):
-        if self.game_status and self.active_tile and self.player_move:
-            if self.active_tile.enemy and self.active_tile.status == TileStatus.BOAT:
-                self.enemy_hitpoints -= 1
-            self.active_tile.hitted()
-            self.active_tile = None
-            self.player_move = False
-            arcade.cleanup_texture_cache()
+        if self.game_status and self.player_move and self.active_tile:
+            if self.active_tile.enemy and (self.active_tile.status == TileStatus.EMPTY or self.active_tile.status == TileStatus.BOAT):
+                if self.active_tile.status == TileStatus.BOAT:
+                    self.enemy_hitpoints -= 1
+                self.active_tile.hitted()
+                self.active_tile = None
+                self.player_move = False
+            #arcade.cleanup_texture_cache()
         if not self.game_status and not self.active_boat:
             for boat in self.boats:
                 if (
@@ -105,12 +108,12 @@ class Handler(arcade.Window):
     def set_up_boats(self):
         self.boats = [
                 Boat(5, "./assets/ship1.png"),
-                Boat(4, "./assets/ship3.png"),
-                Boat(4, "./assets/ship2.png"),
-                Boat(3, "./assets/ship4.png"),
-                Boat(3, "./assets/ship5.png"),
-                Boat(2, "./assets/ship6.png"),
-                Boat(2, "./assets/ship7.png"),
+                #Boat(4, "./assets/ship3.png"),
+                #Boat(4, "./assets/ship2.png"),
+                #Boat(3, "./assets/ship4.png"),
+                #Boat(3, "./assets/ship5.png"),
+                #Boat(2, "./assets/ship6.png"),
+                #Boat(2, "./assets/ship7.png"),
             ]
         index = 1
         for lod in self.boats:
@@ -296,9 +299,11 @@ class Handler(arcade.Window):
                     self.active_boat.y = boat_placement_tile.square.y + square_length / 2
             self.active_boat = None
         
-    def display_fire(self):
+    def display_enemy_hits(self):
         for coord in self.fire_coords:
             arcade.draw_lrwh_rectangle_textured(coord[0], coord[1], square_length, square_length, texture=self.fire)
+        for coord in self.miss_coords:
+            arcade.draw_lrwh_rectangle_textured(coord[0], coord[1], square_length, square_length, texture=self.missed, angle=90)
             
     def main_menu(self, win=False):
         pass

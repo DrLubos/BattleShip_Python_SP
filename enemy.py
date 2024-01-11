@@ -1,4 +1,4 @@
-from enums_constants import board_size, TileStatus
+from enums_constants import board_size
 from boat import Boat
 import random as rand
 
@@ -8,6 +8,8 @@ class Enemy:
         self.handler = handler
         for boat in boats:
             self.boats.append(Boat(boat.length, None))
+        self.coords = []
+        self.fill_coords()
         
     def setup_boats(self):
         for boat in self.boats:
@@ -26,7 +28,10 @@ class Enemy:
         return (row, col, rotation)
     
     def shoot(self):
-        location = self.generate_location()
-        while self.handler.player_tiles[location[0]][location[1]].status == TileStatus.HIT or self.handler.player_tiles[location[0]][location[1]].status == TileStatus.MISS:
-            location = self.generate_location()
+        location = self.coords.pop(rand.randint(0, len(self.coords) - 1))
         self.handler.player_tiles[location[0]][location[1]].hitted()
+    
+    def fill_coords(self):
+        for row in range(board_size):
+            for col in range(board_size):
+                self.coords.append((row, col))
