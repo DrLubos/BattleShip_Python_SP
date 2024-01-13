@@ -1,7 +1,7 @@
 from boat import Boat
 from enums_constants import *
 from tile import Tile
-from enemy import Enemy
+from enemy import Enemy, NormalEnemy
 
 import arcade
 
@@ -16,7 +16,7 @@ class Handler(arcade.Window):
         self.player_move = False
         self.setup()
         
-    def setup(self):
+    def setup(self, difficulty=Difficulty.EASY):
         self.player_tiles = [[Tile(row, col, win_width, win_height, self, enemy=False) for col in range(board_size)] for row in range(board_size)]
         self.enemy_tiles = [[Tile(row, col, win_width, win_height, self, enemy=True) for col in range(board_size)] for row in range(board_size)]
         self.fire_coords = []
@@ -28,8 +28,10 @@ class Handler(arcade.Window):
         self.active_boat = None
         self.placed_boats = 0
         self.set_up_boats()
-        self.enemy = Enemy(self.boats, self)
-        self.enemy.setup_boats()
+        if difficulty == Difficulty.EASY:
+            self.enemy = Enemy(self.boats, self)
+        if difficulty == Difficulty.NORMAL:
+            self.enemy = NormalEnemy(self.boats, self)
         self.frame = 0
         self.middle_text = "Place boats on your board"
         self.result = ""
@@ -61,10 +63,13 @@ class Handler(arcade.Window):
                 
     def on_mouse_press(self, x, y, button, modifiers):
         if not self.game_status and not self.player_move:
-            if x >= win_width / 2 - win_width / 4 and x <= win_width / 2 + win_width / 4 and y >= win_height / 2 - win_height / 12 and y <= win_height / 2 + win_height / 12:
+            if x >= win_width / 2 - win_width / 4 and x <= win_width / 2 + win_width / 4 and y >= win_height / 1.87 - win_height / 12 and y <= win_height / 1.87 + win_height / 12:
                 self.player_move = True
-                self.setup()
-            return     
+                self.setup(Difficulty.EASY)
+            if x >= win_width / 2 - win_width / 4 and x <= win_width / 2 + win_width / 4 and y >= win_height / 3 - win_height / 12 and y <= win_height / 3 + win_height / 12:
+                self.player_move = True
+                self.setup(Difficulty.NORMAL)
+            return
         if self.game_status and self.player_move and self.active_tile:
             if self.active_tile.enemy and (self.active_tile.status == TileStatus.EMPTY or self.active_tile.status == TileStatus.BOAT):
                 if self.active_tile.status == TileStatus.BOAT:
@@ -137,8 +142,8 @@ class Handler(arcade.Window):
     def set_up_boats(self):
         self.boats = [
                 Boat(5, "./assets/ship1.png"),
-                #Boat(4, "./assets/ship3.png"),
-                #Boat(4, "./assets/ship2.png"),
+                Boat(4, "./assets/ship3.png"),
+                Boat(4, "./assets/ship2.png"),
                 #Boat(3, "./assets/ship4.png"),
                 #Boat(3, "./assets/ship5.png"),
                 #Boat(2, "./assets/ship6.png"),
@@ -346,5 +351,8 @@ class Handler(arcade.Window):
         elif self.result == "You lost!":
             arcade.draw_rectangle_filled(win_width / 2, win_height - padding - win_height / 5, win_width / 2, win_height / 6, arcade.color.RED)
         arcade.draw_text(self.result, win_width / 2, win_height - padding - win_height / 5, arcade.color.BLACK, font_size=90, anchor_x="center", anchor_y="center", bold=True)
-        arcade.draw_rectangle_filled(win_width / 2, win_height / 2, win_width / 2, win_height / 6, arcade.color.SILVER)
-        arcade.draw_text("PLAY", win_width / 2, win_height / 2, arcade.color.BLACK, font_size=90, anchor_x="center", anchor_y="center", bold=True)
+        arcade.draw_rectangle_filled(win_width / 2, win_height / 1.87, win_width / 2, win_height / 6, arcade.color.SILVER)
+        arcade.draw_text("EASY", win_width / 2, win_height / 1.87 , arcade.color.BLACK, font_size=90, anchor_x="center", anchor_y="center", bold=True)
+        arcade.draw_rectangle_filled(win_width / 2, win_height / 3, win_width / 2, win_height / 6, arcade.color.YELLOW)
+        arcade.draw_text("NORMAL", win_width / 2, win_height / 3, arcade.color.BLACK, font_size=90, anchor_x="center", anchor_y="center", bold=True)
+        #arcade.draw_rectangle_filled(win_width / 2, win_height / 7.5, win_width / 2, win_height / 6, arcade.color.RED_DEVIL)

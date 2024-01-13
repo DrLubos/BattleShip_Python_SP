@@ -11,3 +11,7 @@ class TileStatus(Enum):
     BOAT = 1
     HIT = 2
     MISS = 3
+    
+class Difficulty(Enum):
+    EASY = 0
+    NORMAL = 1
