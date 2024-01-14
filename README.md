@@ -4,9 +4,9 @@ Battleship is a strategic game where you engage in combat against the computer.
 
 ## Description
 
-The game is developed using the Python Arcade library, featuring graphics composed of textured geometric shapes that enhance the visual experience. Player control is intuitive, driven by mouse input, providing an easy-to-use interface. Players have the option to select from two difficulty levels.
+The game is developed using the Python Arcade library, featuring graphics composed of textured geometric shapes that enhance the visual experience. Player control is intuitive, driven by mouse input, providing an easy-to-use interface. Players have the option to select from three difficulty levels.
 
-In the easy difficulty setting, enemy shots are distributed randomly across the game board, creating an unpredictable challenge. On the normal difficulty level, a more sophisticated strategy is employed. If an enemy hits your ship, the subsequent shot will be directed around the impacted area. This allows the enemy to determine the orientation of your ship before proceeding to systematically target and destroy it.
+In the easy difficulty setting, enemy shots are distributed randomly across the game board, creating an unpredictable challenge. On the normal difficulty level, a more sophisticated strategy is employed. If an enemy hits your ship, the subsequent shot will be directed around the impacted area. This allows the enemy to determine the orientation of your ship before proceeding to systematically target and destroy it. The hard difficulty is an upgraded version of normal difficulty, where, if a shot misses the boat, the enemy will change the target location for the next shot.
 
 With engaging gameplay and varying difficulty levels, the game offers a dynamic and strategic experience for players of all skill levels.
 

@@ -4,5 +4,6 @@
     "python.terminal.activateEnvironment": true,
     "python.pythonPath": "${workspaceFolder}/.venv/bin/python",
     "main_script": "main.py",
-    "program": "main.py"
+    "program": "main.py",
+    "python.analysis.typeCheckingMode": "off",
 }

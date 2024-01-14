@@ -32,16 +32,15 @@ class Tile:
     def change_color(self):
         if self.status == TileStatus.EMPTY:
             if self.enemy:
-                self.square.color = arcade.color.GREEN
+                self.square.color = arcade.color.BRITISH_RACING_GREEN
             else:    
-                self.square.transparent_color = arcade.color.GOLD
+                self.square.transparent_color = arcade.color.BUD_GREEN
 
     def reset_color(self):
-        if self.status == TileStatus.EMPTY:
-            if self.enemy:
-                self.square.color = arcade.color.RED
-            else:
-                self.square.transparent_color = (0, 0, 0, 0)
+        if self.enemy:
+            self.square.color = arcade.color.RED
+        else:
+            self.square.transparent_color = (0, 0, 0, 0)
                 
 class Square:
     def __init__(self, x, y, color, handler, enemy=False):

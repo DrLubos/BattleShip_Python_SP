@@ -1,4 +1,3 @@
-# main.py
 import arcade
 from game_handler import Handler
 

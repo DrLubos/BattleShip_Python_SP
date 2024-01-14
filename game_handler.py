@@ -8,7 +8,7 @@ import arcade
 class Handler(arcade.Window):
     def __init__(self, title):
         super().__init__(win_width, win_height, title)
-        self.background = arcade.load_texture("./assets/bg.jpg")
+        self.background = arcade.load_texture("./assets/background.png")
         self.cloud = arcade.load_texture("./assets/cloud.png")
         self.fire = arcade.load_texture("./assets/fire.png")
         self.missed = arcade.load_texture("./assets/missed.png")
@@ -16,7 +16,7 @@ class Handler(arcade.Window):
         self.player_move = False
         self.setup()
         
-    def setup(self, difficulty=Difficulty.EASY):
+    def setup(self, difficulty=Difficulty.NORMAL):
         self.player_tiles = [[Tile(row, col, win_width, win_height, self, enemy=False) for col in range(board_size)] for row in range(board_size)]
         self.enemy_tiles = [[Tile(row, col, win_width, win_height, self, enemy=True) for col in range(board_size)] for row in range(board_size)]
         self.fire_coords = []
@@ -108,6 +108,8 @@ class Handler(arcade.Window):
                     lower_index = True
                 if self.check_boat_placement(boat_placement_tile.row, boat_placement_tile.col, lower_index):
                     self.place_boat(boat_placement_tile, lower_index)
+                    if self.active_tile:
+                        self.active_tile.reset_color()
                     self.placed_boats += 1
                     if self.placed_boats == len(self.boats):
                         self.game_status = True
@@ -185,6 +187,8 @@ class Handler(arcade.Window):
                     tile.square.draw()
                     
     def check_boat_placement(self, row, col, lower_index=False, enemy_check=False):
+        if not self.active_boat:
+            return
         if self.active_boat.length % 2 == 0:
             if self.active_boat.angle == 270:
                 if lower_index:
@@ -204,7 +208,6 @@ class Handler(arcade.Window):
                             self.player_tiles[row][i].status = TileStatus.BOAT
                         else:
                             self.enemy_tiles[row][i].status = TileStatus.BOAT
-                            self.enemy_tiles[row][i].square.color = arcade.color.PURPLE
                     return True
                 else:
                     polovica = self.active_boat.length // 2
@@ -223,7 +226,6 @@ class Handler(arcade.Window):
                             self.player_tiles[row][i].status = TileStatus.BOAT
                         else:
                             self.enemy_tiles[row][i].status = TileStatus.BOAT
-                            self.enemy_tiles[row][i].square.color = arcade.color.PURPLE
                     return True
             else:
                 if lower_index:
@@ -243,7 +245,6 @@ class Handler(arcade.Window):
                             self.player_tiles[i][col].status = TileStatus.BOAT
                         else:
                             self.enemy_tiles[i][col].status = TileStatus.BOAT
-                            self.enemy_tiles[i][col].square.color = arcade.color.PURPLE
                     return True
                 else:
                     polovica = self.active_boat.length // 2
@@ -262,7 +263,6 @@ class Handler(arcade.Window):
                             self.player_tiles[i][col].status = TileStatus.BOAT
                         else:
                             self.enemy_tiles[i][col].status = TileStatus.BOAT
-                            self.enemy_tiles[i][col].square.color = arcade.color.PURPLE
                     return True
         else:
             polovica = self.active_boat.length // 2
@@ -288,7 +288,6 @@ class Handler(arcade.Window):
                         self.player_tiles[row][col - polovica + i].status = TileStatus.BOAT
                     else:
                         self.enemy_tiles[row][col - polovica + i].status = TileStatus.BOAT
-                        self.enemy_tiles[row][col - polovica + i].square.color = arcade.color.PURPLE
                 return True
             else:
                 if row < polovica or row > board_size - (polovica + 1):
@@ -312,10 +311,11 @@ class Handler(arcade.Window):
                         self.player_tiles[row - polovica + i][col].status = TileStatus.BOAT
                     else:
                         self.enemy_tiles[row - polovica + i][col].status = TileStatus.BOAT
-                        self.enemy_tiles[row - polovica + i][col].square.color = arcade.color.PURPLE
                 return True
     
     def place_boat(self, boat_placement_tile, lower_index):
+        if not self.active_boat:
+            return
         self.active_boat.alpha = 255
         if isinstance(boat_placement_tile, Tile):
             if self.active_boat.angle == 270 or self.active_boat.angle == 90: 
@@ -342,7 +342,7 @@ class Handler(arcade.Window):
         for coord in self.fire_coords:
             arcade.draw_lrwh_rectangle_textured(coord[0], coord[1], square_length, square_length, texture=self.fire)
         for coord in self.miss_coords:
-            arcade.draw_lrwh_rectangle_textured(coord[0], coord[1], square_length, square_length, texture=self.missed, angle=90)
+            arcade.draw_lrwh_rectangle_textured(coord[0], coord[1], square_length, square_length, texture=self.missed)
             
     def display_text(self):
         arcade.draw_text(self.middle_text, win_width / 2, win_height - padding * 2 - board_size * square_length, arcade.color.WHITE, font_size=30, anchor_x="center", anchor_y="center", bold=True)
