@@ -122,167 +122,27 @@ class NormalEnemy(Enemy):
             index_iterator += 1
         return index_iterator
 
-                
-                
-
-    
-class HardEnemy(Enemy):
+class HardEnemy(NormalEnemy):
     def __init__(self, boats, handler):
         super().__init__(boats, handler)
-        self.last_hit = None
-        self.direction = None
-
+        
     def shoot(self):
-        if self.last_hit is None:
-            location = self.coords.pop(rand.randint(0, len(self.coords) - 1))
-        else:
-            location = self.get_next_location()
-
-        self.last_hit = location
+        location = self.coords.pop(0)
+        if location == self.reset_location:
+            self.up, self.down, self.left, self.right = True, True, True, True
+            self.reset_location = None
+        if self.handler.player_tiles[location[0]][location[1]].status == TileStatus.EMPTY:
+            if rand.random() < 0.7:
+                self.coords.append(location)
+                self.shoot()
+                return
+        if self.handler.player_tiles[location[0]][location[1]].status == TileStatus.BOAT and not self.reset_location:
+            row_first = rand.choice([True, False])
+            if row_first:
+                index_iterator = super().shoot_rows(location)
+                index_iterator = super().shoot_cols(location, index_iterator)
+            else:
+                index_iterator = super().shoot_cols(location)
+                index_iterator = super().shoot_rows(location, index_iterator)
+            self.reset_location = self.coords[index_iterator - 1]
         self.handler.player_tiles[location[0]][location[1]].hitted()
-
-    def get_next_location(self):
-        row, col = self.last_hit
-
-        if self.direction is None:
-            self.direction = rand.choice(['up', 'down', 'left', 'right'])
-
-        if self.direction == 'up':
-            row -= 1
-        elif self.direction == 'down':
-            row += 1
-        elif self.direction == 'left':
-            col -= 1
-        elif self.direction == 'right':
-            col += 1
-
-        if row < 0 or row >= board_size or col < 0 or col >= board_size or (row, col) not in self.coords:
-            self.direction = None
-            return self.get_next_location()
-
-        self.coords.remove((row, col))
-        return (row, col)
-
-
-class HardEnemy(Enemy):
-    def __init__(self, boats, handler):
-        super().__init__(boats, handler)
-        self.next_locations = []
-        
-    def calculate_shot(self):
-        if len(self.next_locations) == 0:
-            self.random_shot()
-        else:
-            self.neighbor_shot()
-        
-    def random_shot(self):
-        location = self.coords.pop(rand.randint(0, len(self.coords) - 1))
-        self.shoot(location[0], location[1])
-        if self.handler.player_tiles[location[0]][location[1]].status == TileStatus.BOAT:
-            self.next_locations.append((location[0], location[1] + 1))
-            self.next_locations.append((location[0], location[1] - 1))
-            self.next_locations.append((location[0] + 1, location[1]))
-            self.next_locations.append((location[0] - 1, location[1]))
-    
-    def neighbor_shot(self):
-        location = self.next_locations.pop(0)
-        self.shoot(location[0], location[1])
-        if self.handler.player_tiles[location[0]][location[1]].status == TileStatus.BOAT:
-            if location[0] == self.next_locations[0][0]:
-                self.next_locations.append((location[0], location[1] + 1))
-                self.next_locations.append((location[0], location[1] - 1))
-            else:
-                self.next_locations.append((location[0] + 1, location[1]))
-                self.next_locations.append((location[0] - 1, location[1]))
-    
-    def setup_shot(self):
-        if len(self.next_locations) == 0:
-            self.random_shot()
-        else:
-            self.neighbor_shot()
-  
-class NormalEnemy1(Enemy):
-    def __init__(self, boats, handler):
-        super().__init__(boats, handler)
-        super().fill_coords()
-        self.next_locations = []
-        
-    def calculate_shot(self):
-        first_location = self.coords.pop(rand.randint(0, len(self.coords) - 1))
-        self.shoot(first_location[0], first_location[1])
-        # Ak trafil lod, pridaj susedne policka
-        if self.handler.player_tiles[first_location[0]][first_location[1]].status == TileStatus.BOAT:
-            # Vacsie indexy
-            if first_location[0] < board_size - 1 and first_location[1] < board_size - 1:
-                row_first = True if rand.randint(0, 1) == 0 else False
-                next_location = (first_location[0] + 1, first_location[1]) if row_first else (first_location[0], first_location[1] + 1)
-                self.coords.remove(next_location)
-                self.next_locations.append(next_location)
-            elif first_location[0] < board_size - 1:
-                self.next_locations.append((first_location[0] + 1, first_location[1]))
-            elif first_location[1] < board_size - 1:
-                self.next_locations.append((first_location[0], first_location[1] + 1))
-            # Mensie indexy
-            if first_location[0] > 0 and first_location[1] > 0:
-                row_first = True if rand.randint(0, 1) == 0 else False
-                self.next_locations.append((first_location[0] - 1, first_location[1]) if row_first else (first_location[0], first_location[1] - 1))
-            elif first_location[0] > 0:
-                self.next_locations.append((first_location[0] - 1, first_location[1]))
-            elif first_location[1] > 0:
-                self.next_locations.append((first_location[0], first_location[1] - 1))
-        
-        # Inak geenruj nahodne policko
-        else:
-            next_location = self.coords[rand.randint(0, len(self.coords) - 1)]
-            if next_location[0] == first_location[0] and not (next_location[1] == first_location[1] + 1 and next_location[1] == first_location[1] -1):
-                self.next_locations.append(self.coords.pop(self.coords.index((next_location[0], next_location[1]))))
-            elif next_location[1] == first_location[1] and not (next_location[0] == first_location[0] + 1 and next_location[0] == first_location[0] -1):
-                self.next_locations.append(self.coords.pop(self.coords.index((next_location[0], next_location[1]))))
-        # Vyberaj prve policko z listu
-        first_list = self.next_locations.pop(0)
-        # Ak to je lod, tak pridaj bud susedne riadky alebo stlpce
-        if self.handler.player_tiles[first_list[0]][first_list[1]].status == TileStatus.BOAT:
-            if first_location[0] == first_list[0]:
-                if first_list[0] > 0:
-                    self.next_locations.insert(0, (first_list[0] - 1, first_list[1]))
-                if first_list[0] < board_size - 1:
-                    self.next_locations.insert(0, (first_list[0] + 1, first_list[1]))
-            else:
-                if first_list[1] > 0:
-                    self.next_locations.insert(0, (first_list[0], first_list[1] - 1))
-                if first_list[1] < board_size - 1:
-                    self.next_locations.insert(0, (first_list[0], first_list[1] + 1))
-        self.shoot(first_list[0], first_list[1])
-    
-    def setup_shot(self):
-        if len(self.next_locations) == 0:
-            self.first_shot()
-        else:
-            self.calculate_shot()
-        
-    def first_shot(self):
-        first_location = self.coords.pop(rand.randint(0, len(self.coords) - 1))
-        self.shoot(first_location[0], first_location[1])
-        # Ak trafil lod, pridaj susedne policka
-        if self.handler.player_tiles[first_location[0]][first_location[1]].status == TileStatus.BOAT:
-            # Vacsie indexy
-            if first_location[0] < board_size - 1 and first_location[1] < board_size - 1:
-                row_first = True if rand.randint(0, 1) == 0 else False
-                next_location = (first_location[0] + 1, first_location[1]) if row_first else (first_location[0], first_location[1] + 1)
-                self.coords.remove(next_location)
-                self.next_locations.append(next_location)
-            elif first_location[0] < board_size - 1:
-                self.next_locations.append((first_location[0] + 1, first_location[1]))
-            elif first_location[1] < board_size - 1:
-                self.next_locations.append((first_location[0], first_location[1] + 1))
-            # Mensie indexy
-            if first_location[0] > 0 and first_location[1] > 0:
-                row_first = True if rand.randint(0, 1) == 0 else False
-                self.next_locations.append((first_location[0] - 1, first_location[1]) if row_first else (first_location[0], first_location[1] - 1))
-            elif first_location[0] > 0:
-                self.next_locations.append((first_location[0] - 1, first_location[1]))
-            elif first_location[1] > 0:
-                self.next_locations.append((first_location[0], first_location[1] - 1))
-        
-    def shoot(self, row, col):
-        self.handler.player_tiles[row][col].hitted()

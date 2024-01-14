@@ -22,7 +22,8 @@ class Boat:
         if self.image:
             arcade.draw_texture_rectangle(self.x, self.y, square_length, square_length * self.length, self.image, angle=self.angle, alpha=self.alpha)
         else:
-            print("Nepodarilo sa nacitat obrazok lode")
+            print("Boat image not found")
+            SystemExit(1)
 
     def rotate(self):
         self.angle = 270 if self.angle == 0 else 0

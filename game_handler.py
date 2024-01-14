@@ -1,7 +1,7 @@
 from boat import Boat
 from enums_constants import *
 from tile import Tile
-from enemy import Enemy, NormalEnemy
+from enemy import Enemy, HardEnemy, NormalEnemy
 
 import arcade
 
@@ -32,6 +32,8 @@ class Handler(arcade.Window):
             self.enemy = Enemy(self.boats, self)
         if difficulty == Difficulty.NORMAL:
             self.enemy = NormalEnemy(self.boats, self)
+        if difficulty == Difficulty.HARD:
+            self.enemy = HardEnemy(self.boats, self)
         self.frame = 0
         self.middle_text = "Place boats on your board"
         self.result = ""
@@ -69,6 +71,9 @@ class Handler(arcade.Window):
             if x >= win_width / 2 - win_width / 4 and x <= win_width / 2 + win_width / 4 and y >= win_height / 3 - win_height / 12 and y <= win_height / 3 + win_height / 12:
                 self.player_move = True
                 self.setup(Difficulty.NORMAL)
+            if x >= win_width / 2 - win_width / 4 and x <= win_width / 2 + win_width / 4 and y >= win_height / 7.5 - win_height / 12 and y <= win_height / 7.5 + win_height / 12:
+                self.player_move = True
+                self.setup(Difficulty.HARD)
             return
         if self.game_status and self.player_move and self.active_tile:
             if self.active_tile.enemy and (self.active_tile.status == TileStatus.EMPTY or self.active_tile.status == TileStatus.BOAT):
@@ -144,10 +149,10 @@ class Handler(arcade.Window):
                 Boat(5, "./assets/ship1.png"),
                 Boat(4, "./assets/ship3.png"),
                 Boat(4, "./assets/ship2.png"),
-                #Boat(3, "./assets/ship4.png"),
-                #Boat(3, "./assets/ship5.png"),
-                #Boat(2, "./assets/ship6.png"),
-                #Boat(2, "./assets/ship7.png"),
+                Boat(3, "./assets/ship4.png"),
+                Boat(3, "./assets/ship5.png"),
+                Boat(2, "./assets/ship6.png"),
+                Boat(2, "./assets/ship7.png"),
             ]
         index = 1
         for lod in self.boats:
@@ -355,4 +360,5 @@ class Handler(arcade.Window):
         arcade.draw_text("EASY", win_width / 2, win_height / 1.87 , arcade.color.BLACK, font_size=90, anchor_x="center", anchor_y="center", bold=True)
         arcade.draw_rectangle_filled(win_width / 2, win_height / 3, win_width / 2, win_height / 6, arcade.color.YELLOW)
         arcade.draw_text("NORMAL", win_width / 2, win_height / 3, arcade.color.BLACK, font_size=90, anchor_x="center", anchor_y="center", bold=True)
-        #arcade.draw_rectangle_filled(win_width / 2, win_height / 7.5, win_width / 2, win_height / 6, arcade.color.RED_DEVIL)
+        arcade.draw_rectangle_filled(win_width / 2, win_height / 7.5, win_width / 2, win_height / 6, arcade.color.RED_DEVIL)
+        arcade.draw_text("HARD", win_width / 2, win_height / 7.5, arcade.color.BLACK, font_size=90, anchor_x="center", anchor_y="center", bold=True)
