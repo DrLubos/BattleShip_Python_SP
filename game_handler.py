@@ -51,7 +51,7 @@ class Handler(arcade.Window):
         self.display_text()
         if self.game_status:
             self.frame += 1
-            if self.frame % 3 == 0:
+            if self.frame % 25 == 0:
                 if not self.player_move:
                     self.enemy.shoot()
                     if self.hitpoints == 0:
@@ -190,7 +190,7 @@ class Handler(arcade.Window):
         if not self.active_boat:
             return
         if self.active_boat.length % 2 == 0:
-            if self.active_boat.angle == 270:
+            if self.active_boat.angle == 270 or self.active_boat.angle == 90:
                 if lower_index:
                     polovica = self.active_boat.length // 2
                     col -= polovica
@@ -266,7 +266,7 @@ class Handler(arcade.Window):
                     return True
         else:
             polovica = self.active_boat.length // 2
-            if self.active_boat.angle == 270:
+            if self.active_boat.angle == 270 or self.active_boat.angle == 90:
                 if col < polovica or col > board_size - (polovica + 1):
                     return False
                 for i in range(polovica + 1):
