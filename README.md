@@ -11,7 +11,8 @@ In the easy difficulty setting, enemy shots are distributed randomly across the 
 With engaging gameplay and varying difficulty levels, the game offers a dynamic and strategic experience for players of all skill levels.
 
 ## How to play
-The objective of the game is to locate all enemy ships hidden behind clouds and destroy them before the enemy annihilates all your ships.
+The objective of the game is to locate all enemy ships hidden behind clouds and destroy them before the enemy annihilates all your ships.<br>
+Game is controlled by your mouse and if you have selected ship, you can use key 'R' to rotate ship.
 <ol>
   <li>Select difficulty level.</li>
   <li>Place your ships on your game board (you can rotate ships by pressing `R` or the `Right mouse button`).</li>
